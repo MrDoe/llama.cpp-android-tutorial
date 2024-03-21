@@ -1,12 +1,10 @@
 # llama.cpp Android Tutorial
 
-[中文](README_CN.md)
-
 llama.cpp link： https://github.com/ggerganov/llama.cpp
 
 ## Termux installation
 
-Official Website: [termux](https://termux.dev/cn/index.html).
+Official Website: [termux](https://termux.dev/en/index.html).
 
 Change repo for faster speed (optional):
 
@@ -21,7 +19,7 @@ Check [here](https://wiki.termux.com/wiki/Package_Management) for more help.
 Download following packages in termux:
 
 ```bash
-pkg install clang wget git cmake
+pkg i clang wget git cmake
 ```
 
 Obtain llama.cpp source code:
@@ -55,27 +53,28 @@ mv ~/storage/downloads/model_name ~/llama.cpp/models
 
 #### Install Pre-build NDK
 
-Location: https://github.com/lzhiyong/termux-ndk/releases/tag/ndk-r23/
+Location: [https://github.com/lzhiyong/termux-ndk](https://github.com/lzhiyong/termux-ndk/releases)
+Copy the download link from there and download the zip with wget:
 
 ```bash
-wget https://github.com/lzhiyong/termux-ndk/releases/download/ndk-r23/android-ndk-r23c-aarch64.zip
+wget https://github.com/lzhiyong/termux-ndk/releases/download/[NDK_ZIP_FILE].zip
 ```
 
 Unzip and set NDK PATH:
 
 ```bash
-unzip YOUR_ANDROID_NDK_ZIP_FILE
-export NDK=~/path/to/your/unzip/directory
+unzip [NDK_ZIP_FILE].zip
+export NDK=~/[EXTRACTED_NDK_PATH]
 ```
 
 #### Build
 
-Build under `~/llama.cpp/build`:
+Build under `~/llama.cpp/build` (Change the flags according to your Android version and CPU):
 
 ```bash
 mkdir build
 cd build
-cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-23 -DCMAKE_C_FLAGS=-march=armv8.4a+dotprod ..
+cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 -DCMAKE_C_FLAGS=-march=native ..
 make
 ```
 
@@ -100,7 +99,9 @@ Manually compile CLBlast and copy `clblast.h` into llama.cpp:
 git clone https://github.com/CNugteren/CLBlast.git
 cd CLBlast
 cmake .
-make
+cmake --build . --config Release
+mkdir install
+cmake --install . --prefix ~/CLBlast/install
 cp libclblast.so* $PREFIX/lib
 cp ./include/clblast.h ../llama.cpp
 ```
@@ -112,20 +113,21 @@ cp /data/data/com.termux/files/usr/include/openblas/cblas.h .
 cp /data/data/com.termux/files/usr/include/openblas/openblas_config.h .
 ```
 
-#### Build
+#### Build llama.cpp with CLBlast
 
 ```bash
 cd ~/llama.cpp
 mkdir build
 cd build
-cmake .. -DLLAMA_CLBLAST=ON
-cmake --build . --config Release
+cmake -DLLAMA_CLBLAST=ON -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 -DCMAKE_C_FLAGS=-march=native -DCLBlast_DIR=~/CLBlast/install/lib/cmake/CLBlast ..
+cd ..
+make
 ```
 
 Add `LD_LIBRARY_PATH` under `~/.bashrc`（Run program directly on physical GPU）：
 
 ```bash
-echo "export LD_LIBRARY_PATH=/vendor/lib64:$LD_LIBRARY_PATH" >> ~/.bashrc
+echo "export LD_LIBRARY_PATH=/vendor/lib64:$LD_LIBRARY_PATH:$PREFIX" >> ~/.bashrc
 ```
 
 Check GPU is available for OpenCL:
@@ -145,8 +147,9 @@ Run:
 
 ```bash
 cd bin/
-./main YOUR_PARAMETERS
+./server -m models/[YOUR_MODEL].gff
 ```
+Open [http://127.0.0.1:8080/] http://127.0.0.1:8080/ in a web browser of your choice.
 
 #### Results
 
