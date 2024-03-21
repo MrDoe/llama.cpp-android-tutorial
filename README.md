@@ -149,7 +149,7 @@ Run:
 cd bin/
 ./server -m models/[YOUR_MODEL].gff
 ```
-Open [http://127.0.0.1:8080/] http://127.0.0.1:8080/ in a web browser of your choice.
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080) in a web browser of your choice.
 
 #### Results
 
